@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protein Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom number input styling to hide spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .transition-all-300 {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 font-sans min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-violet-700 text-white p-6 shadow-md">
+        <div class="max-w-4xl mx-auto flex items-center gap-4">
+            <!-- Logo Block -->
+            <div class="h-16 w-16 rounded-2xl overflow-hidden shadow-lg border border-slate-100 bg-white shrink-0">
+                 <img 
+                    src="logo.jpg" 
+                    alt="Logo"
+                    class="h-full w-full object-cover"
+                    onerror="this.src='https://ui-avatars.com/api/?name=Protein+Calc&background=7c3aed&color=fff&size=128'"
+                 />
+            </div>
+            
+            <div>
+                <h1 class="text-2xl font-bold">Protein Calculator</h1>
+                <p class="text-violet-100 text-sm">Convert Weight, Moles, and Molarity for Proteins</p>
+                <!-- Credits -->
+                <p class="text-xs text-violet-200 mt-1 font-mono">
+                    Created by Carlos David <a href="https://cdcruzher.com" target="_blank" rel="noopener noreferrer" class="text-white hover:text-violet-100 font-semibold transition-colors underline decoration-violet-400">@cdcruzher</a>
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 md:p-6 space-y-8">
+
+        <!-- SECTION 1: MOLECULAR WEIGHT SETTINGS -->
+        <section class="bg-white rounded-xl card-shadow p-6 border-l-4 border-violet-500">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-cube"></i> Protein Parameters
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Calculation Mode -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 mb-1">Input Mode</label>
+                    <select id="inputMode" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block p-2.5">
+                        <option value="kDa">Molecular Weight (kDa)</option>
+                        <option value="aa">Amino Acid Count</option>
+                        <option value="dalton">Molecular Weight (Daltons)</option>
+                    </select>
+                </div>
+
+                <!-- Value Input -->
+                <div id="valueContainer">
+                    <label id="valueLabel" class="block text-sm font-medium text-gray-500 mb-1">Molecular Weight (kDa)</label>
+                    <input type="number" id="proteinInput" value="50" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block p-2.5" placeholder="e.g. 50">
+                </div>
+
+                <!-- Calculated MW Display -->
+                <div class="bg-violet-50 rounded-lg p-3 flex flex-col justify-center border border-violet-100">
+                    <span class="text-xs text-violet-500 font-bold uppercase tracking-wide">Molecular Weight</span>
+                    <div class="flex items-baseline gap-1">
+                        <span id="mwDisplay" class="text-xl font-mono font-bold text-violet-700">50,000</span>
+                        <span class="text-sm text-violet-600">Da (g/mol)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CALCULATOR TABS -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- CALCULATOR 1: MASS <-> MOLES -->
+            <div class="bg-white rounded-xl card-shadow p-6 relative overflow-hidden group hover:shadow-lg transition-all-300">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="fa-solid fa-scale-balanced text-6xl text-violet-500"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">1. Mass ↔ Moles</h3>
+                
+                <div class="space-y-4">
+                    <!-- Input: Mass -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Input Mass</label>
+                        <div class="flex rounded-md shadow-sm">
+                            <input type="number" id="c1_mass" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 text-sm focus:ring-violet-500 focus:border-violet-500" placeholder="0">
+                            <select id="c1_mass_unit" class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 bg-gray-100 text-gray-500 text-sm rounded-r-md hover:bg-gray-200">
+                                <option value="g">g</option>
+                                <option value="mg">mg</option>
+                                <option value="ug" selected>µg</option>
+                                <option value="ng">ng</option>
+                                <option value="pg">pg</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="flex items-center justify-center text-gray-300 py-1">
+                        <i class="fa-solid fa-arrow-down-up"></i>
+                    </div>
+
+                    <!-- Output: Moles -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Resulting Moles</label>
+                        <div class="flex rounded-md shadow-sm">
+                            <input type="number" id="c1_moles" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 text-sm bg-violet-50 font-semibold text-violet-700 focus:ring-violet-500 focus:border-violet-500" placeholder="0" readonly>
+                            <select id="c1_moles_unit" class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 bg-gray-100 text-gray-500 text-sm rounded-r-md hover:bg-gray-200">
+                                <option value="mol">mol</option>
+                                <option value="mmol">mmol</option>
+                                <option value="umol">µmol</option>
+                                <option value="nmol">nmol</option>
+                                <option value="pmol" selected>pmol</option>
+                                <option value="fmol">fmol</option>
+                            </select>
+                        </div>
+                        <div class="mt-2 text-right">
+                             <span id="c1_copies" class="text-xs text-gray-500 font-mono">0 molecules</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CALCULATOR 2: MOLARITY FROM MASS -->
+            <div class="bg-white rounded-xl card-shadow p-6 relative overflow-hidden group hover:shadow-lg transition-all-300">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="fa-solid fa-flask text-6xl text-fuchsia-500"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">2. Calculate Molarity</h3>
+                
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Input: Mass -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Mass</label>
+                            <div class="flex rounded-md shadow-sm">
+                                <input type="number" id="c2_mass" class="flex-1 w-full px-2 py-2 rounded-l-md border border-gray-300 text-sm" placeholder="0">
+                                <select id="c2_mass_unit" class="w-16 px-1 py-2 border border-l-0 border-gray-300 bg-gray-100 text-xs rounded-r-md">
+                                    <option value="g">g</option>
+                                    <option value="mg">mg</option>
+                                    <option value="ug" selected>µg</option>
+                                    <option value="ng">ng</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Input: Volume -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Volume</label>
+                            <div class="flex rounded-md shadow-sm">
+                                <input type="number" id="c2_vol" class="flex-1 w-full px-2 py-2 rounded-l-md border border-gray-300 text-sm" placeholder="0">
+                                <select id="c2_vol_unit" class="w-16 px-1 py-2 border border-l-0 border-gray-300 bg-gray-100 text-xs rounded-r-md">
+                                    <option value="l">L</option>
+                                    <option value="ml">mL</option>
+                                    <option value="ul" selected>µL</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result -->
+                    <div class="pt-2">
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Concentration</label>
+                        <div class="flex rounded-md shadow-sm">
+                            <input type="number" id="c2_result" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 text-sm bg-fuchsia-50 font-semibold text-fuchsia-700" readonly placeholder="0">
+                            <select id="c2_result_unit" class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 bg-gray-100 text-gray-500 text-sm rounded-r-md">
+                                <option value="M">M</option>
+                                <option value="mM">mM</option>
+                                <option value="uM">µM</option>
+                                <option value="nM" selected>nM</option>
+                                <option value="pM">pM</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CALCULATOR 3: PREPARATION (MASS OR DILUTION) -->
+            <div class="bg-white rounded-xl card-shadow p-6 relative overflow-hidden group hover:shadow-lg transition-all-300 lg:col-span-2">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="fa-solid fa-weight-hanging text-6xl text-pink-500"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">3. Solution Preparation</h3>
+                
+                <div class="space-y-6">
+                    
+                    <!-- TOP: Target Definition -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                        <!-- Desired Conc -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Target Concentration</label>
+                            <div class="flex rounded-md shadow-sm">
+                                <input type="number" id="c3_conc" class="flex-1 w-full px-3 py-2 rounded-l-md border border-gray-300 text-sm" placeholder="e.g. 10">
+                                <select id="c3_conc_unit" class="w-20 px-2 py-2 border border-l-0 border-gray-300 bg-gray-100 text-sm rounded-r-md">
+                                    <option value="M">M</option>
+                                    <option value="mM">mM</option>
+                                    <option value="uM" selected>µM</option>
+                                    <option value="nM">nM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Desired Volume -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Target Volume</label>
+                            <div class="flex rounded-md shadow-sm">
+                                <input type="number" id="c3_vol" class="flex-1 w-full px-3 py-2 rounded-l-md border border-gray-300 text-sm" placeholder="e.g. 100">
+                                <select id="c3_vol_unit" class="w-20 px-2 py-2 border border-l-0 border-gray-300 bg-gray-100 text-sm rounded-r-md">
+                                    <option value="l">L</option>
+                                    <option value="ml">mL</option>
+                                    <option value="ul" selected>µL</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-dashed border-gray-200"></div>
+
+                    <!-- BOTTOM: Two Prep Methods -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        <!-- Method A: From Solid -->
+                        <div class="bg-pink-50 rounded-lg p-4 border border-pink-100">
+                            <h4 class="text-sm font-bold text-pink-800 mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-mortar-pestle"></i> From Powder (Mass)
+                            </h4>
+                            <div class="space-y-2">
+                                <label class="block text-xs text-pink-600">Weigh out:</label>
+                                <div class="flex rounded-md shadow-sm">
+                                    <input type="number" id="c3_result" class="flex-1 w-full px-3 py-2 rounded-l-md border border-pink-200 text-sm bg-white font-semibold text-pink-700" readonly placeholder="0">
+                                    <select id="c3_result_unit" class="w-20 px-2 py-2 border border-l-0 border-pink-200 bg-pink-100 text-sm text-pink-800 rounded-r-md">
+                                        <option value="g">g</option>
+                                        <option value="mg">mg</option>
+                                        <option value="ug" selected>µg</option>
+                                        <option value="ng">ng</option>
+                                    </select>
+                                </div>
+                                <p class="text-[10px] text-pink-400 italic">Depends on Molecular Weight</p>
+                            </div>
+                        </div>
+
+                        <!-- Method B: From Stock -->
+                        <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+                            <h4 class="text-sm font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-vial"></i> From Stock (Dilution)
+                            </h4>
+                            <div class="space-y-3">
+                                <!-- Stock Conc Input -->
+                                <div>
+                                    <label class="block text-xs text-indigo-600 mb-1">Stock Concentration:</label>
+                                    <div class="flex rounded-md shadow-sm h-8">
+                                        <input type="number" id="c3_stock" class="flex-1 w-full px-2 py-1 rounded-l-md border border-indigo-200 text-sm" placeholder="e.g. 100">
+                                        <select id="c3_stock_unit" class="w-20 px-1 py-1 border border-l-0 border-indigo-200 bg-white text-xs rounded-r-md">
+                                            <option value="M">M</option>
+                                            <option value="mM" selected>mM</option>
+                                            <option value="uM">µM</option>
+                                            <option value="nM">nM</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Result Volume -->
+                                <div>
+                                    <label class="block text-xs text-indigo-600 mb-1">Add Stock Volume:</label>
+                                    <div class="flex rounded-md shadow-sm">
+                                        <input type="number" id="c3_stock_vol" class="flex-1 w-full px-3 py-2 rounded-l-md border border-indigo-200 text-sm bg-white font-semibold text-indigo-700" readonly placeholder="0">
+                                        <select id="c3_stock_vol_unit" class="w-20 px-2 py-2 border border-l-0 border-indigo-200 bg-indigo-100 text-sm text-indigo-800 rounded-r-md">
+                                            <option value="l">L</option>
+                                            <option value="ml">mL</option>
+                                            <option value="ul" selected>µL</option>
+                                            <option value="nl">nL</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Info -->
+        <div class="text-center text-xs text-gray-400 mt-8 mb-4">
+            <p><strong>Constants used:</strong> 1 Amino Acid ≈ 110 Da (g/mol)</p>
+            <p>1 kDa = 1000 Da = 1000 g/mol</p>
+            <p>Avogadro's Number: 6.022 × 10²³</p>
+        </div>
+
+        <!-- Donation Section -->
+        <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col items-center">
+            <p class="text-xs text-slate-400 mb-2 uppercase tracking-wider font-semibold">Support the Project</p>
+            <a href="https://www.paypal.com/donate/?business=6EN68NHUTM2KQ&no_recurring=0&item_name=Thanks+for+your+support+Amigo%21&currency_code=USD" target="_blank" rel="noopener noreferrer" class="block w-32 h-32 bg-white p-2 rounded-xl border border-slate-100 hover:shadow-md hover:scale-105 transition-all cursor-pointer" title="Scan or Click to Donate">
+                <img 
+                    src="qrcode.jpg" 
+                    alt="Donate QR Code"
+                    class="w-full h-full object-contain"
+                    onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Fwww.paypal.com%2Fdonate%2F%3Fbusiness%3D6EN68NHUTM2KQ%26no_recurring%3D0%26item_name%3DThanks%2Bfor%2Byour%2Bsupport%2BAmigo%21%26currency_code%3DUSD'"
+                />
+            </a>
+            <p class="text-[10px] text-slate-400 mt-2 text-center">Scan or click the QR code to donate via PayPal</p>
+        </div>
+
+    </main>
+
+    <script>
+        // --- Constants & Config ---
+        const CONSTANTS = {
+            AVG_AA_WEIGHT: 110 // Daltons per Amino Acid
+        };
+
+        const AVOGADRO = 6.02214076e23;
+
+        // Factors to convert unit to base unit (g, L, mol)
+        const FACTORS = {
+            // Mass -> g
+            g: 1, mg: 1e-3, ug: 1e-6, ng: 1e-9, pg: 1e-12, fg: 1e-15,
+            // Volume -> L
+            l: 1, ml: 1e-3, ul: 1e-6, nl: 1e-9, pl: 1e-12,
+            // Moles -> mol
+            mol: 1, mmol: 1e-3, umol: 1e-6, nmol: 1e-9, pmol: 1e-12, fmol: 1e-15,
+            // Molarity -> M (mol/L)
+            M: 1, mM: 1e-3, uM: 1e-6, nM: 1e-9, pM: 1e-12
+        };
+
+        // --- State ---
+        let currentMW = 0; // in g/mol (Da)
+
+        // --- DOM Elements ---
+        const els = {
+            inputMode: document.getElementById('inputMode'),
+            proteinInput: document.getElementById('proteinInput'),
+            valueLabel: document.getElementById('valueLabel'),
+            mwDisplay: document.getElementById('mwDisplay'),
+            
+            // Calculator 1
+            c1_mass: document.getElementById('c1_mass'),
+            c1_mass_unit: document.getElementById('c1_mass_unit'),
+            c1_moles: document.getElementById('c1_moles'),
+            c1_moles_unit: document.getElementById('c1_moles_unit'),
+            c1_copies: document.getElementById('c1_copies'),
+
+            // Calculator 2
+            c2_mass: document.getElementById('c2_mass'),
+            c2_mass_unit: document.getElementById('c2_mass_unit'),
+            c2_vol: document.getElementById('c2_vol'),
+            c2_vol_unit: document.getElementById('c2_vol_unit'),
+            c2_result: document.getElementById('c2_result'),
+            c2_result_unit: document.getElementById('c2_result_unit'),
+
+            // Calculator 3
+            c3_conc: document.getElementById('c3_conc'),
+            c3_conc_unit: document.getElementById('c3_conc_unit'),
+            c3_vol: document.getElementById('c3_vol'),
+            c3_vol_unit: document.getElementById('c3_vol_unit'),
+            // Solid
+            c3_result: document.getElementById('c3_result'),
+            c3_result_unit: document.getElementById('c3_result_unit'),
+            // Stock
+            c3_stock: document.getElementById('c3_stock'),
+            c3_stock_unit: document.getElementById('c3_stock_unit'),
+            c3_stock_vol: document.getElementById('c3_stock_vol'),
+            c3_stock_vol_unit: document.getElementById('c3_stock_vol_unit'),
+        };
+
+        // --- Logic ---
+
+        function updateMW() {
+            const mode = els.inputMode.value;
+            const inputVal = parseFloat(els.proteinInput.value) || 0;
+            let mw = 0;
+
+            if (mode === 'kDa') {
+                mw = inputVal * 1000; // Convert kDa to Da
+            } else if (mode === 'aa') {
+                mw = inputVal * CONSTANTS.AVG_AA_WEIGHT; // AA count * 110
+            } else if (mode === 'dalton') {
+                mw = inputVal;
+            }
+
+            currentMW = mw;
+            
+            // Formatting
+            els.mwDisplay.innerText = mw.toLocaleString(undefined, { maximumFractionDigits: 2 });
+            
+            // Re-trigger all calculators
+            calc1_Forward();
+            calc2();
+            calc3();
+        }
+
+        // Toggle UI for Input Mode
+        function handleModeChange() {
+            const mode = els.inputMode.value;
+            const label = els.valueLabel;
+            const input = els.proteinInput;
+
+            if (mode === 'kDa') {
+                label.innerText = "Molecular Weight (kDa)";
+                input.placeholder = "e.g. 50";
+            } else if (mode === 'aa') {
+                label.innerText = "Amino Acid Count";
+                input.placeholder = "e.g. 450";
+            } else {
+                label.innerText = "Molecular Weight (Da or g/mol)";
+                input.placeholder = "e.g. 50000";
+            }
+            updateMW();
+        }
+
+        // Calculator 1: Mass <-> Moles
+        // Logic: Moles = Mass(g) / MW
+        function calc1_Forward() {
+            // Mass -> Moles
+            const massVal = parseFloat(els.c1_mass.value);
+            if (isNaN(massVal) || currentMW === 0) return;
+
+            const massInGrams = massVal * FACTORS[els.c1_mass_unit.value];
+            const moles = massInGrams / currentMW;
+
+            // Convert to target mole unit
+            const targetUnitFactor = FACTORS[els.c1_moles_unit.value];
+            const result = moles / targetUnitFactor;
+
+            els.c1_moles.value = formatNumber(result);
+            
+            // Copies
+            const copies = moles * AVOGADRO;
+            els.c1_copies.innerText = copies.toExponential(2) + " molecules";
+        }
+
+        function calc1_Reverse() {
+            // Moles -> Mass
+            const molesVal = parseFloat(els.c1_moles.value);
+            if (isNaN(molesVal) || currentMW === 0) return;
+
+            const molesBase = molesVal * FACTORS[els.c1_moles_unit.value];
+            const massGrams = molesBase * currentMW;
+
+            const targetUnitFactor = FACTORS[els.c1_mass_unit.value];
+            const result = massGrams / targetUnitFactor;
+
+            els.c1_mass.value = formatNumber(result);
+            
+            // Copies
+            const copies = molesBase * AVOGADRO;
+            els.c1_copies.innerText = copies.toExponential(2) + " molecules";
+        }
+
+        // Calculator 2: Mass + Vol -> Molarity
+        // Logic: Molarity(M) = (Mass(g) / MW) / Volume(L)
+        function calc2() {
+            const massVal = parseFloat(els.c2_mass.value);
+            const volVal = parseFloat(els.c2_vol.value);
+            
+            if (isNaN(massVal) || isNaN(volVal) || volVal === 0 || currentMW === 0) {
+                els.c2_result.value = "";
+                return;
+            }
+
+            const massG = massVal * FACTORS[els.c2_mass_unit.value];
+            const volL = volVal * FACTORS[els.c2_vol_unit.value];
+
+            const moles = massG / currentMW;
+            const molarityM = moles / volL;
+
+            const targetFactor = FACTORS[els.c2_result_unit.value];
+            els.c2_result.value = formatNumber(molarityM / targetFactor);
+        }
+
+        // Calculator 3: Preparation (Mass & Stock)
+        function calc3() {
+            const concVal = parseFloat(els.c3_conc.value);
+            const volVal = parseFloat(els.c3_vol.value);
+
+            if (isNaN(concVal) || isNaN(volVal)) {
+                els.c3_result.value = "";
+                els.c3_stock_vol.value = "";
+                return;
+            }
+
+            // Common: Target Moles
+            const molarityM = concVal * FACTORS[els.c3_conc_unit.value];
+            const volL = volVal * FACTORS[els.c3_vol_unit.value];
+            const moles = molarityM * volL;
+
+            // --- Part A: Mass (needs MW) ---
+            if (currentMW > 0) {
+                const massG = moles * currentMW;
+                const massTargetFactor = FACTORS[els.c3_result_unit.value];
+                els.c3_result.value = formatNumber(massG / massTargetFactor);
+            } else {
+                els.c3_result.value = ""; // No MW, can't calc mass
+            }
+
+            // --- Part B: Stock Dilution (independent of MW) ---
+            // C1V1 = C2V2 => V_stock = (C_target * V_target) / C_stock
+            const stockConcVal = parseFloat(els.c3_stock.value);
+            if (!isNaN(stockConcVal) && stockConcVal > 0) {
+                const stockMolarity = stockConcVal * FACTORS[els.c3_stock_unit.value];
+                
+                // V_stock (L) = (Target Molarity * Target Vol) / Stock Molarity
+                const reqStockVolL = (molarityM * volL) / stockMolarity;
+                
+                const volTargetFactor = FACTORS[els.c3_stock_vol_unit.value];
+                els.c3_stock_vol.value = formatNumber(reqStockVolL / volTargetFactor);
+            } else {
+                els.c3_stock_vol.value = "";
+            }
+        }
+
+        // Utility to format numbers nicely (avoid 0.00000001)
+        function formatNumber(num) {
+            if (num === 0) return 0;
+            const abs = Math.abs(num);
+            if (abs < 0.001 || abs > 100000) {
+                return num.toExponential(4);
+            }
+            return parseFloat(num.toPrecision(5));
+        }
+
+        // --- Event Listeners ---
+        els.inputMode.addEventListener('change', handleModeChange);
+        els.proteinInput.addEventListener('input', updateMW);
+
+        // Calc 1 Events
+        els.c1_mass.addEventListener('input', calc1_Forward);
+        els.c1_mass_unit.addEventListener('change', calc1_Forward);
+        els.c1_moles.addEventListener('input', calc1_Reverse);
+        els.c1_moles_unit.addEventListener('change', () => {
+             // If unit changes, re-calculate value based on Mass (primary)
+             calc1_Forward();
+        });
+
+        // Calc 2 Events
+        [els.c2_mass, els.c2_mass_unit, els.c2_vol, els.c2_vol_unit, els.c2_result_unit].forEach(el => {
+            el.addEventListener('input', calc2);
+            el.addEventListener('change', calc2);
+        });
+
+        // Calc 3 Events (Common Inputs)
+        [els.c3_conc, els.c3_conc_unit, els.c3_vol, els.c3_vol_unit].forEach(el => {
+            el.addEventListener('input', calc3);
+            el.addEventListener('change', calc3);
+        });
+        
+        // Calc 3 Events (Solid Output Unit)
+        els.c3_result_unit.addEventListener('change', calc3);
+
+        // Calc 3 Events (Stock Inputs)
+        [els.c3_stock, els.c3_stock_unit, els.c3_stock_vol_unit].forEach(el => {
+            el.addEventListener('input', calc3);
+            el.addEventListener('change', calc3);
+        });
+
+        // Init
+        updateMW();
+
+    </script>
+</body>
+</html>
